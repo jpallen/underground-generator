@@ -64,17 +64,23 @@ define ["cs!node"],(Node) ->
 					# Rotational force to align to grid
 
 					angle = Math.atan2( unitDirection[1], unitDirection[0] )
+					if angle < 0
+						angle += 2*Math.PI
 					
-					# if in right hand side of plane
-					if Math.PI/2 >= angle >= - Math.PI/2
-						# push angle to zero
-						forceMagnitude = gridForce * (angle)
-					else if angle <= - Math.PI/2 or angle >= Math.PI/2
-						angle += Math.PI
-						if angle <= -Math.PI/2
-							angle += 2*Math.PI
-						# push angle to pi
-						forceMagnitude = gridForce * (angle - Math.PI)
+					alignmentAngles = [
+						0, Math.PI/2, Math.PI, 3*Math.PI/2
+					]
+
+					for alignmentAngle in alignmentAngles
+						diff = angle - alignmentAngle
+						if diff < 0
+							diff += 2 * Math.PI
+						if diff > 2 * Math.PI
+							diff -= 2 * Math.PI
+						if !angleDelta? or diff < angleDelta
+							angleDelta = diff
+
+					forceMagnitude = gridForce * (angle)
 
 					nodeToNormal = [unitDirection[1], -unitDirection[0]]
 					nodeFromNormal = [-unitDirection[1], unitDirection[0]]
