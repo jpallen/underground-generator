@@ -1,19 +1,27 @@
 define ["cs!node"],(Node) ->
 
 	# spring system constants
-	targetLength = 100
-	k = 10
+	k = 0
 	dt = 0.1
 	m = 1
 	c = 1
 	
-	k2 = 0.3
+	k2 = 0
+
+	gridForce = 10
 	
 	# field system constants
-	G = 100000
+	G = 0
 
 	class ForceIterator
 		constructor: (@nodes, @tracks) ->
+			lengths = []
+			for track in tracks
+				for link in track.links()
+					lengths.push @linkLength link
+			sum = 0
+			sum += length for length in lengths
+			@targetLength = sum / lengths.length
 
 		step: () ->
 			# intialise node force data
@@ -26,17 +34,18 @@ define ["cs!node"],(Node) ->
 			for node1 in @nodes
 				for node2 in @nodes
 					if node1 != node2
-						unit = @nodesUnitVector(node1,node2);
+						unit = @nodesUnitVector(node1,node2)
 						node1.force = [
 							node1.force[0] - (G * 2 * m )/Math.pow(@nodesDist(node1,node2),2) * unit[0],
-							node1.force[1] - (G * 2 * m )/Math.pow(@nodesDist(node1,node2),2) * unit[1]  							
+							node1.force[1] - (G * 2 * m )/Math.pow(@nodesDist(node1,node2),2) * unit[1]
 						]
 
 			# track springs
 			for track in @tracks
 				for link in track.links()
+					# Spring force to fix lengths of tracks
 					length = @linkLength(link)
-					forceMagnitude = k * (targetLength - length)
+					forceMagnitude = k * (@targetLength - length)
 					unitDirection = @linkUnitVector(link)
 					
 					nodeFrom = @nodes[link[0]]
@@ -52,22 +61,51 @@ define ["cs!node"],(Node) ->
 						nodeTo.force[1] + forceMagnitude * unitDirection[1]
 					]
 
+					# Rotational force to align to grid
+
+					angle = Math.atan2( unitDirection[1], unitDirection[0] )
+					
+					# if in right hand side of plane
+					if Math.PI/2 >= angle >= - Math.PI/2
+						# push angle to zero
+						forceMagnitude = gridForce * (angle)
+					else if angle <= - Math.PI/2 or angle >= Math.PI/2
+						angle += Math.PI
+						if angle <= -Math.PI/2
+							angle += 2*Math.PI
+						# push angle to pi
+						forceMagnitude = gridForce * (angle - Math.PI)
+
+					nodeToNormal = [unitDirection[1], -unitDirection[0]]
+					nodeFromNormal = [-unitDirection[1], unitDirection[0]]
+
+					nodeTo.force = [
+						nodeTo.force[0] + forceMagnitude * nodeToNormal[0]
+						nodeTo.force[1] + forceMagnitude * nodeToNormal[1]
+					]
+					nodeFrom.force = [
+						nodeFrom.force[0] + forceMagnitude * nodeFromNormal[0]
+						nodeFrom.force[1] + forceMagnitude * nodeFromNormal[1]
+					]
+						
+						
+
 			# damping and force update
 			for node in @nodes
 				
 				pseudoInitNode = new Node('none',node.initialPosition.x,node.initialPosition.y)
-				unit = @nodesUnitVector(node,pseudoInitNode)				
+				unit = @nodesUnitVector(node,pseudoInitNode)
 				forceMagnitude = k2 * (@nodesDist(node,pseudoInitNode))
 				
 				node.force = [
 					node.force[0] + forceMagnitude * unit[0]
 					node.force[1] + forceMagnitude * unit[1]
-				]	
+				]
 				
 				node.force = [
 					node.force[0] - c * node.velocity[0]
 					node.force[1] - c * node.velocity[1]
-				]					
+				]
 			
 				node.velocity = [
 					node.velocity[0] + node.force[0] / m * dt
@@ -100,12 +138,5 @@ define ["cs!node"],(Node) ->
 			]
 
 		linkUnitVector: (link) ->
-			length = @linkLength(link)
-			nodeA = @nodes[link[0]]
-			nodeB = @nodes[link[1]]
-			[
-				(nodeB.position.x - nodeA.position.x) / length
-				(nodeB.position.y - nodeA.position.y) / length
-			]
-
+			@nodesUnitVector(@nodes[link[0]], @nodes[link[1]])
 
