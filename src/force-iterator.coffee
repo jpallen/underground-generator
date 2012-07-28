@@ -41,7 +41,6 @@ define ["cs!node"],(Node) ->
 				@assignGridForces()
 				@assignSpringForces()
 			delta = @applyForces()
-			console.log delta
 			if delta < 10 and @scheme == "spread"
 				@scheme = "grid"
 
