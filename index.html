@@ -1,19 +1,18 @@
 <html>
 	<head>
 		<title>Underground Map Generator</title>
+		<link rel="stylesheet" href="style/main.css" />
 		<script type="text/javascript"
 			src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDmEvRj-YqTYRSfbWYRZngDZV0WRLeSN30&sensor=false">
 		</script>
 		<script type="text/javascript" src="lib/require-jquery.js" data-main="src/index.js"></script>
-		<style>
-			body,html,#google-map {
-				height: 100%;
-				margin: 0;
-			}
-		</style>
 	</head>
 	<body>
 		<div id="rendered-map"></div>
-		<div id="google-map"></div>
+		<div class="side-panel">
+		</div>
+		<div class="map-panel">
+			<div id="google-map"></div>
+		</div>
 	</body>
 </html>

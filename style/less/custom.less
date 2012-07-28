@@ -1,0 +1,18 @@
+@sidePanelWidth: 300px;
+
+.side-panel {
+	width: @sidePanelWidth;
+	height: 100%;
+	border-right: 1px solid #999;
+	float: left;
+}
+
+.map-panel {
+	margin-left: @sidePanelWidth;
+	height: 100%;
+	#google-map {
+		height: 100%;
+	}
+}
+#google-map label { width: auto; display:inline; }
+#google-map img { max-height: none; max-width: none; }
