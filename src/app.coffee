@@ -7,4 +7,4 @@ define [
 				element: $("#google-map")
 
 	$ () ->
-		app = new App()
+		window.app = new App()

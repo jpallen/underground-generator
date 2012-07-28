@@ -82,6 +82,7 @@ define ["../lib/mustache"], (Mustache) ->
 			@element = options.element
 			@initMap()
 			@tracks = []
+			@nodes = []
 			@addTrack()
 			$("#add-track").click () => @addTrack()
 
@@ -97,6 +98,7 @@ define ["../lib/mustache"], (Mustache) ->
 		addNewNode: (position) ->
 			if @currentTrack?
 				node = new Node @map, position
+				@nodes.push node
 				@currentTrack.addNode node
 				node.on "click", () => @addExistingNode(node)
 
@@ -107,4 +109,41 @@ define ["../lib/mustache"], (Mustache) ->
 		addTrack: () ->
 			@currentTrack = new Track @map, "Untitled"
 			@tracks.push @currentTrack
+
+		export: (x, y, width, height) ->
+			json =
+				nodes: []
+				tracks: []
+
+			for node in @nodes
+				node.index = json.nodes.length
+				json.nodes.push
+					name: node.name
+					position:
+						x: -node.marker.position.lat()
+						y: node.marker.position.lng()
+			
+			for track in @tracks
+				json.tracks.push
+					name : track.name
+					line : (node.index for node in track.nodes)
+
+			for node in json.nodes
+				if !minX? or node.position.x < minX
+					minX = node.position.x
+				if !maxX? or node.position.x > maxX
+					maxX = node.position.x
+				if !minY? or node.position.y < minY
+					minY = node.position.y
+				if !maxY? or node.position.y > maxY
+					maxY = node.position.y
+
+			xScaleFactor = width / (maxX - minX)
+			yScaleFactor = height / (maxY - minY)
+			
+			for node in json.nodes
+				node.position.x = (node.position.x - minX) * xScaleFactor + x
+				node.position.y = (node.position.y - minY) * yScaleFactor + y
+
+			return JSON.stringify(json)
 			
