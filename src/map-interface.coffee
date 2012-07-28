@@ -23,7 +23,7 @@ define ["../lib/mustache"], (Mustache) ->
 			@$sidebarEl = $(Mustache.render(template, {
 				name: @name
 			}))
-			$(".side-panel").append @$sidebarEl
+			@$sidebarEl.insertBefore $("#add-track")
 
 		renderNodeInSidebar: (node) ->
 			template =
@@ -33,11 +33,13 @@ define ["../lib/mustache"], (Mustache) ->
 			$nodeEl = $(Mustache.render(template, {
 				name: node.name
 			}))
-			console.log @$sidebarEl
 			@$sidebarEl.find("ul").append $nodeEl
+			node.on "change:name", (name) ->
+				$nodeEl.text(name)
 
 	class Node
 		constructor: (@map, position) ->
+			_.extend this, Backbone.Events
 			@connections = []
 			@marker = new google.maps.Marker
 				map: @map
@@ -46,12 +48,16 @@ define ["../lib/mustache"], (Mustache) ->
 				position: position
 			@updateName()
 			google.maps.event.addListener @marker, "dragend", () => @updateName()
+			google.maps.event.addListener @marker, "click", (e) =>
+				@trigger "click", e
 
 		updateName: () ->
 			@name = "Loading..."
+			@trigger("change:name", @name)
 			@geocoder ||= new google.maps.Geocoder()
 			@geocoder.geocode {latLng: @marker.position}, (results, status) =>
 				@name = results[0].formatted_address.split(",")[0]
+				@trigger("change:name", @name)
 
 		connectTo: (node) ->
 			line = new Line @map, this, node
@@ -74,10 +80,10 @@ define ["../lib/mustache"], (Mustache) ->
 	class MapInterface
 		constructor: (options) ->
 			@element = options.element
-			@nodes = []
-			@lines = []
 			@initMap()
-			@currentTrack = new Track @map, "Untitled"
+			@tracks = []
+			@addTrack()
+			$("#add-track").click () => @addTrack()
 
 		initMap: () ->
 			@map = new google.maps.Map @element[0],
@@ -86,10 +92,19 @@ define ["../lib/mustache"], (Mustache) ->
 				mapTypeId: google.maps.MapTypeId.ROADMAP
 
 			google.maps.event.addListener @map, "click", (e) =>
-				@addNode e.latLng
+				@addNewNode e.latLng
 
-		addNode: (position) ->
+		addNewNode: (position) ->
 			if @currentTrack?
-				@currentTrack.addNode new Node @map, position
+				node = new Node @map, position
+				@currentTrack.addNode node
+				node.on "click", () => @addExistingNode(node)
 
+		addExistingNode: (node) ->
+			if @currentTrack
+				@currentTrack.addNode node
 
+		addTrack: () ->
+			@currentTrack = new Track @map, "Untitled"
+			@tracks.push @currentTrack
+			

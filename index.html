@@ -5,13 +5,13 @@
 		<script type="text/javascript"
 			src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDmEvRj-YqTYRSfbWYRZngDZV0WRLeSN30&sensor=false">
 		</script>
+		<script type="text/javascript" src="lib/underscore-min.js"></script>
+		<script type="text/javascript" src="lib/backbone-min.js"></script>
 		<script type="text/javascript" src="lib/require-jquery.js" data-main="src/index.js"></script>
 	</head>
 	<body>
-		<div id="rendered-map">
-			<canvas id="canvas"></canvas>
-		</div>
 		<div class="side-panel">
+			<a id="add-track" class="btn btn-primary">New Track</a>
 		</div>
 		<div class="map-panel">
 			<div id="google-map"></div>
