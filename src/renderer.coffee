@@ -10,8 +10,11 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 	
 	$(window).resize(resizeCanvas)
 	
-	nodeRadius = 7
-	nodeFillColour = 'black'
+	nodeRadius = 10
+	nodeRadius2 = 7
+	
+	nodeFillColour = 'white'
+	nodeEdgeColour = 'black'
 	trackWidth = 5
 	
 	class Renderer
@@ -53,8 +56,22 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 		drawNode: (node) ->
 			ctx.save()
 			ctx.translate(node.position.x,node.position.y)
-			ctx.fillStyle = nodeFillColour
-			ctx.fillRect(-nodeRadius,-nodeRadius,2*nodeRadius,2*nodeRadius)
+
+			if node.type == 'interchange' or !node.type?
+				ctx.fillStyle = nodeEdgeColour
+				
+				ctx.beginPath()
+				ctx.arc(0,0,nodeRadius,0,6.29,0)
+				ctx.closePath()			
+				ctx.fill()
+	
+				ctx.fillStyle = nodeFillColour
+	
+				ctx.beginPath()
+				ctx.arc(0,0,nodeRadius2,0,6.29,0)
+				ctx.closePath()			
+				ctx.fill()
+				
 			ctx.restore()
 			
 		clear: () ->
