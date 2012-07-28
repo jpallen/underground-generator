@@ -10,4 +10,6 @@ define [
 				element: $("#google-map")
 
 	$ () ->
-		window.app = new App()
+		app = new App()
+		app.renderer.clear()
+		app.renderer.draw()
