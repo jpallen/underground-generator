@@ -4,3 +4,4 @@ define () ->
 			@position = {}
 			@position.x = x
 			@position.y = y
+			@type = "stop"
