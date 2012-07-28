@@ -3,6 +3,7 @@ define () ->
 	k = 10
 	dt = 0.01
 	m = 1
+	c = 10
 
 	class ForceIterator
 		constructor: (@nodes, @tracks) ->
@@ -31,7 +32,14 @@ define () ->
 						nodeTo.force[1] + forceMagnitude * unitDirection[1]
 					]
 
+
 			for node in @nodes
+			
+				node.force = [
+					node.force[0] - c * node.velocity[0]
+					node.force[1] - c * node.velocity[1]
+				]					
+			
 				node.velocity = [
 					node.velocity[0] + node.force[0] / m * dt
 					node.velocity[1] + node.force[1] / m * dt
