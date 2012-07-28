@@ -1,4 +1,13 @@
-define () ->
+define [
+	"cs!renderer",
+	"cs!map-interface"
+], (Renderer, MapInterface) ->
 	App = class App
-		helloWorld: () ->
-			alert "Hello world"
+		constructor: () ->
+			@renderer = new Renderer
+				element: $("#rendered-map")
+			@mapInterface = new MapInterface
+				element: $("#google-map")
+
+	$ () ->
+		window.app = new App()
