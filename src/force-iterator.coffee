@@ -1,17 +1,17 @@
 define ["cs!node"],(Node) ->
 
 	# spring system constants
-	k = 0
+	k = 10
 	dt = 0.1
 	m = 1
 	c = 1
 	
-	k2 = 0
+	k2 = 0.3
 
-	gridForce = 10
+	gridForce = 100
 	
 	# field system constants
-	G = 0
+	G = 100000
 
 	class ForceIterator
 		constructor: (@nodes, @tracks) ->
@@ -23,13 +23,29 @@ define ["cs!node"],(Node) ->
 			sum += length for length in lengths
 			@targetLength = sum / lengths.length
 
+			@scheme = "spread"
+
 		step: () ->
-			# intialise node force data
+			# intialize node force data
 			for node in @nodes
 				node.initialPosition ||= {x: node.position.x, y:node.position.y}
 				node.force = [0, 0]
 				node.velocity ||= [0, 0]
-			
+
+			totalDelta = 0
+			if @scheme == "spread"
+				@assignNodeRepulsionForces()
+				@assignSpringForces()
+				@assignCloseToHomeForces()
+			else
+				@assignGridForces()
+				@assignSpringForces()
+			delta = @applyForces()
+			console.log delta
+			if delta < 10 and @scheme == "spread"
+				@scheme = "grid"
+
+		assignNodeRepulsionForces: () ->
 			# repulsion force field
 			for node1 in @nodes
 				for node2 in @nodes
@@ -40,6 +56,7 @@ define ["cs!node"],(Node) ->
 							node1.force[1] - (G * 2 * m )/Math.pow(@nodesDist(node1,node2),2) * unit[1]
 						]
 
+		assignSpringForces: () ->
 			# track springs
 			for track in @tracks
 				for link in track.links()
@@ -47,7 +64,6 @@ define ["cs!node"],(Node) ->
 					length = @linkLength(link)
 					forceMagnitude = k * (@targetLength - length)
 					unitDirection = @linkUnitVector(link)
-					
 					nodeFrom = @nodes[link[0]]
 					nodeTo = @nodes[link[1]]
 
@@ -60,27 +76,67 @@ define ["cs!node"],(Node) ->
 						nodeTo.force[0] + forceMagnitude * unitDirection[0]
 						nodeTo.force[1] + forceMagnitude * unitDirection[1]
 					]
+		
+		assignCloseToHomeForces: () ->
+			# Stay close to original points
+			for node in @nodes
+				pseudoInitNode = new Node('none',node.initialPosition.x,node.initialPosition.y)
+				unit = @nodesUnitVector(node,pseudoInitNode)
+				forceMagnitude = k2 * (@nodesDist(node,pseudoInitNode))
+				
+				node.force = [
+					node.force[0] + forceMagnitude * unit[0]
+					node.force[1] + forceMagnitude * unit[1]
+				]
+			
+		applyForces: () ->
+			totalDelta = 0
+			for node in @nodes
+				node.force = [
+					node.force[0] - c * node.velocity[0]
+					node.force[1] - c * node.velocity[1]
+				]
+			
+				node.velocity = [
+					node.velocity[0] + node.force[0] / m * dt
+					node.velocity[1] + node.force[1] / m * dt
+				]
+				node.position.x = node.position.x + node.velocity[0] * dt
+				node.position.y = node.position.y + node.velocity[1] * dt
 
-					# Rotational force to align to grid
+				totalDelta += Math.abs(node.velocity[0])
+				totalDelta += Math.abs(node.velocity[1])
+
+			return totalDelta
+
+		assignGridForces: () ->
+			for track in @tracks
+				for link in track.links()
+					unitDirection = @linkUnitVector(link)
+					nodeFrom = @nodes[link[0]]
+					nodeTo = @nodes[link[1]]
 
 					angle = Math.atan2( unitDirection[1], unitDirection[0] )
 					if angle < 0
 						angle += 2*Math.PI
 					
 					alignmentAngles = [
-						0, Math.PI/2, Math.PI, 3*Math.PI/2
+						0, Math/4, Math.PI/2, 3*Math.PI/4,
+						Math.PI, 5*Math.PI/4, 3 * Math.PI/2, 7*Math.PI/4
 					]
 
+					angleDelta = null
 					for alignmentAngle in alignmentAngles
 						diff = angle - alignmentAngle
-						if diff < 0
-							diff += 2 * Math.PI
-						if diff > 2 * Math.PI
-							diff -= 2 * Math.PI
-						if !angleDelta? or diff < angleDelta
+
+						# always take acute angle
+						if diff > Math.PI
+							diff = 2 * Math.PI - diff
+
+						if !angleDelta? or Math.abs(diff) < Math.abs(angleDelta)
 							angleDelta = diff
 
-					forceMagnitude = gridForce * (angle)
+					forceMagnitude = gridForce * (angleDelta)
 
 					nodeToNormal = [unitDirection[1], -unitDirection[0]]
 					nodeFromNormal = [-unitDirection[1], unitDirection[0]]
@@ -93,32 +149,8 @@ define ["cs!node"],(Node) ->
 						nodeFrom.force[0] + forceMagnitude * nodeFromNormal[0]
 						nodeFrom.force[1] + forceMagnitude * nodeFromNormal[1]
 					]
-						
-						
-
-			# damping and force update
-			for node in @nodes
-				
-				pseudoInitNode = new Node('none',node.initialPosition.x,node.initialPosition.y)
-				unit = @nodesUnitVector(node,pseudoInitNode)
-				forceMagnitude = k2 * (@nodesDist(node,pseudoInitNode))
-				
-				node.force = [
-					node.force[0] + forceMagnitude * unit[0]
-					node.force[1] + forceMagnitude * unit[1]
-				]
-				
-				node.force = [
-					node.force[0] - c * node.velocity[0]
-					node.force[1] - c * node.velocity[1]
-				]
 			
-				node.velocity = [
-					node.velocity[0] + node.force[0] / m * dt
-					node.velocity[1] + node.force[1] / m * dt
-				]
-				node.position.x = node.position.x + node.velocity[0] * dt
-				node.position.y = node.position.y + node.velocity[1] * dt
+
 
 		linkLength: (link) ->
 			nodeA = @nodes[link[0]]
