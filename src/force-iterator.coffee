@@ -1,17 +1,15 @@
 define ["cs!node"], (Node) ->
 
 	# spring system constants
-	k = 5
-	dt = basedt = 0.01
-	m = 1
-	c = 1
+	k = {}
+	dt = basedt = {}
+	m = {}
+	c = {}
+	k2 = {}
+	gridForce = {}
+	G = {}
 	
-	k2 = 0.3
-	
-	gridForce = 10
-
-	# field system constants
-	G = 100000
+	FC=0
 
 	class ForceIterator
 		constructor: (@nodes, @tracks) ->
@@ -27,13 +25,13 @@ define ["cs!node"], (Node) ->
 
 		resetMagicNumbers: ()->
 			console.log "reseting numners"
-			k = 1
-			dt = basedt = 0.1
+			k = 10
+			dt = basedt = 0.01
 			m = 1
 			c = 1
 			k2 = 0.3
-			gridForce = 100
-			G = 100000
+			gridForce = 0
+			G = 1000000
 
 		step: () ->
 			# intialize node force data
@@ -47,22 +45,43 @@ define ["cs!node"], (Node) ->
 				@assignNodeRepulsionForces()
 				@assignSpringForces()
 				@assignCloseToHomeForces()
-			else
+			
+			if @scheme == "grid"
 				@assignGridForces()
 				@assignSpringForces()
 				@assignCloseToHomeForces()
 				@assignNodeRepulsionForces()
+
 			delta = @applyForces()
 
-			if delta < 1 and @scheme == "spread"
-				k = k / 100
-				G = G / 1000
+			FC=FC+1
+			
+			console.log FC,gridForce,k,G
+
+			if FC>1000 and @scheme == "spread"
+				k = 10
+				G = 1000000
+				c = 1
 				k2 = 0
 				@scheme = "grid"
-			if delta < 100
-				dt = 5 * basedt
-			else
-				dt = basedt
+				
+			if @scheme == "grid"
+				#gridForce=100
+				
+				gridForce = gridForce + 0.1
+				if gridForce > 200 
+					gridForce = 200
+					
+				k = k * 0.999
+				G = G * 0.999
+					
+			if FC>10000
+				@scheme = "none"
+				
+			#if delta < 100
+			#	dt = 5 * basedt
+			#else
+			#	dt = basedt
 
 			return delta
 
