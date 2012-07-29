@@ -1,10 +1,34 @@
 define ["../lib/mustache"], (Mustache) ->
+	colors = [
+		"#263d96", "#ee2622", "#fdd005",
+		"#098137", "#960154", "#f468a1",
+		"#000000",
+		"#2d9edf", "#ae520e"
+	]
+	currentColor = -1
+	getNextColor = () ->
+		currentColor = (currentColor + 1) % colors.length
+		return colors[currentColor]
+
+	names = [
+		"Picadilly", "Central", "Circle",
+		"District", "Metropolitan", "Hammersmith & City",
+		"Northern", "Victoria", "Bakerloo"
+	]
+	currentName = -1
+	getNextName = () ->
+		currentName = (currentName + 1) % names.length
+		return names[currentName]
+
 	class Track
 		constructor: (@map, @name) ->
+			_.extend this, Backbone.Events
 			@nodes = []
+			@color = getNextColor()
 			@renderInSidebar()
 
 		addNode: (node) ->
+			node.track = this
 			@nodes.push(node)
 			if @currentNode?
 				@currentNode.connectTo node
@@ -20,10 +44,13 @@ define ["../lib/mustache"], (Mustache) ->
 					</ul>
 				</div>
 				"""
-			@$sidebarEl = $(Mustache.render(template, {
+			@$el = $(Mustache.render(template, {
 				name: @name
+				color: @color
 			}))
-			@$sidebarEl.insertBefore $("#add-track")
+			@$el.insertBefore $("#add-track")
+			@on "change:name", =>
+				@$el.find(".name").text(@name)
 
 		renderNodeInSidebar: (node) ->
 			template =
@@ -33,9 +60,21 @@ define ["../lib/mustache"], (Mustache) ->
 			$nodeEl = $(Mustache.render(template, {
 				name: node.name
 			}))
-			@$sidebarEl.find("ul").append $nodeEl
+			@$el.find("ul").append $nodeEl
 			node.on "change:name", (name) ->
 				$nodeEl.text(name)
+
+		select: () ->
+			@$el.css({
+				color: "white"
+				"background-color": @color
+			})
+
+		unselect: () ->
+			@$el.css({
+				color: @color
+				"background-color": "white"
+			})
 
 	class Node
 		constructor: (@map, position) ->
@@ -56,8 +95,12 @@ define ["../lib/mustache"], (Mustache) ->
 			@trigger("change:name", @name)
 			@geocoder ||= new google.maps.Geocoder()
 			@geocoder.geocode {latLng: @marker.position}, (results, status) =>
-				@name = results[0].formatted_address.split(",")[0]
+				if results? and results.length > 0
+					@name = results[0].formatted_address.split(",")[0]
+				else
+					@name = "Unknown"
 				@trigger("change:name", @name)
+
 
 		connectTo: (node) ->
 			line = new Line @map, this, node
@@ -70,6 +113,8 @@ define ["../lib/mustache"], (Mustache) ->
 			@line = new google.maps.Polyline
 				map: @map
 				path: [@from.marker.position, @to.marker.position]
+				strokeWeight: 4
+				strokeColor: @from.track.color
 			@listenForNodeUpdate(@from)
 			@listenForNodeUpdate(@to)
 
@@ -85,6 +130,8 @@ define ["../lib/mustache"], (Mustache) ->
 			@nodes = []
 			@addTrack()
 			$("#add-track").click () => @addTrack()
+			$("#rename-track-modal a").on "click", () =>
+				@finishRename()
 
 		initMap: () ->
 			@map = new google.maps.Map @element[0],
@@ -107,8 +154,29 @@ define ["../lib/mustache"], (Mustache) ->
 				@currentTrack.addNode node
 
 		addTrack: () ->
-			@currentTrack = new Track @map, "Untitled"
-			@tracks.push @currentTrack
+			track = new Track @map, getNextName()
+			@tracks.push track
+			@changeTrack(track)
+			track.$el.on "dblclick", () =>
+				@renameTrack(track)
+			track.$el.on "click", () =>
+				@changeTrack(track)
+
+		changeTrack: (track) ->
+			@currentTrack = track
+			for oldTrack in @tracks
+				oldTrack.unselect()
+		 	track.select()
+
+		renameTrack: (track) ->
+			$("#track-name").val(track.name)
+			$("#rename-track-modal").modal()
+
+		finishRename: (track) ->
+			console.log "done"
+			@currentTrack.name = $("#track-name").val()
+			@currentTrack.trigger("change:name")
+			$("#rename-track-modal").modal("hide")
 
 		export: (x, y, width, height) ->
 			json =
@@ -120,13 +188,14 @@ define ["../lib/mustache"], (Mustache) ->
 				json.nodes.push
 					name: node.name
 					position:
-						x: -node.marker.position.lat()
-						y: node.marker.position.lng()
+						x: node.marker.position.lng()
+						y: -node.marker.position.lat()
 			
 			for track in @tracks
 				json.tracks.push
 					name : track.name
 					line : (node.index for node in track.nodes)
+					color: track.color
 
 			for node in json.nodes
 				if !minX? or node.position.x < minX
@@ -145,5 +214,4 @@ define ["../lib/mustache"], (Mustache) ->
 				node.position.x = (node.position.x - minX) * xScaleFactor + x
 				node.position.y = (node.position.y - minY) * yScaleFactor + y
 
-			return JSON.stringify(json)
-			
+			return json

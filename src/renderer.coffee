@@ -2,7 +2,7 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 	canvas = $("#canvas")[0]
 	ctx  = canvas.getContext("2d")
 	
-	resizeCanvas = () -> 
+	resizeCanvas = () ->
 		canvas.width = 1024
 		canvas.height = 768
 		

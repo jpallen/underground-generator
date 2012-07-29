@@ -1,10 +1,32 @@
 @sidePanelWidth: 300px;
 
+.nav {
+	margin-bottom: 0;
+}
+
+#pick-points {
+	position: absolute;
+	top: 36px;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
 .side-panel {
 	width: @sidePanelWidth;
 	height: 100%;
 	border-right: 1px solid #999;
 	float: left;
+	overflow: scroll;
+	.side-panel-inner {
+		margin: 10px;
+	}
+
+	.track {
+		padding: 10px 6px 6px 10px;
+		.border-radius(3px);
+		margin-bottom: 5px;
+	}
 }
 
 .map-panel {

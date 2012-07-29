@@ -4198,11 +4198,32 @@ a.badge:hover {
 .invisible {
   visibility: hidden;
 }
+.nav {
+  margin-bottom: 0;
+}
+#pick-points {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
 .side-panel {
   width: 300px;
   height: 100%;
   border-right: 1px solid #999;
   float: left;
+  overflow: scroll;
+}
+.side-panel .side-panel-inner {
+  margin: 10px;
+}
+.side-panel .track {
+  padding: 10px 6px 6px 10px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  margin-bottom: 5px;
 }
 .map-panel {
   margin-left: 300px;

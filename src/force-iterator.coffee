@@ -1,17 +1,17 @@
-define ["cs!node"],(Node) ->
+define ["cs!node"], (Node) ->
 
 	# spring system constants
-	k = 10
-	dt = basedt = 0.1
+	k = 5
+	dt = basedt = 0.01
 	m = 1
 	c = 1
 	
 	k2 = 0.3
-
-	gridForce = 100
 	
+	gridForce = 10
+
 	# field system constants
-	G = 1000000
+	G = 100000
 
 	class ForceIterator
 		constructor: (@nodes, @tracks) ->
@@ -22,8 +22,18 @@ define ["cs!node"],(Node) ->
 			sum = 0
 			sum += length for length in lengths
 			@targetLength = sum / lengths.length
-
 			@scheme = "spread"
+			@resetMagicNumbers()
+
+		resetMagicNumbers: ()->
+			console.log "reseting numners"
+			k = 5
+			dt = basedt = 0.01
+			m = 1
+			c = 1
+			k2 = 0.3
+			gridForce = 100
+			G = 10000
 
 		step: () ->
 			# intialize node force data
@@ -43,7 +53,7 @@ define ["cs!node"],(Node) ->
 				@assignCloseToHomeForces()
 			delta = @applyForces()
 
-			if delta < 100 and @scheme == "spread"
+			if delta < 1 and @scheme == "spread"
 				k = k / 500.0
 				k2 = k2 / 100.0
 				@scheme = "grid"
