@@ -1,15 +1,7 @@
 define ["cs!node", "cs!track"], (Node, Track) ->
 	canvas = $("#canvas")[0]
 	ctx  = canvas.getContext("2d")
-	
-	resizeCanvas = () ->
-		canvas.width = 1024
-		canvas.height = 768
-		
-	resizeCanvas()
-	
-	$(window).resize(resizeCanvas)
-	
+
 	nodeRadius = 10
 	nodeRadius2 = 7
 	
@@ -22,6 +14,9 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 			@element = options.element
 			
 			@expandDataSet()
+
+			canvas.width = $("#rendered-map").width()
+			canvas.height = $("#rendered-map").height()
 		
 		expandDataSet: () ->
 		
@@ -71,14 +66,20 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 					if aNode.position.y<miny
 						miny = aNode.position.y
 					
-			avx = (minx+maxx)/2
-			avy = (miny+maxy)/2
+			minx -= 50
+			maxx += 50
+			miny -= 50
+			maxy += 50
+
+			ratiox = canvas.width / (maxx-minx)
+			ratioy = canvas.height / (maxy-miny)
 			
-			ctx.save()
-			ctx.translate(avx/2,avy/2)
-			
-			#ctx.scale(0.7,0.7)
-			
+			for node in @nodes
+				node.drawPosition = {
+					x: (node.position.x - minx) * ratiox
+					y: (node.position.y - miny) * ratioy
+				}
+				
 			for aTrack in @tracks
 				do (aTrack) =>
 					@drawTrack(aTrack)
@@ -127,15 +128,15 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 				ctx.lineJoin = "round"
 	
 				ctx.beginPath()
-				ctx.moveTo(nodeA.position.x,nodeA.position.y)
-				ctx.lineTo(nodeA.position.x+norm[0]*trackWidth*2,nodeA.position.y+norm[1]*trackWidth*2)
+				ctx.moveTo(nodeA.drawPosition.x,nodeA.drawPosition.y)
+				ctx.lineTo(nodeA.drawPosition.x+norm[0]*trackWidth*2,nodeA.drawPosition.y+norm[1]*trackWidth*2)
 				ctx.closePath()
 				
 				ctx.stroke()
 	
 				ctx.restore()
 				
-			ctx.save()			
+			ctx.save()
 			
 			if nodeA.nameRendered == false
 			
@@ -144,16 +145,16 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 				deadZone=0
 				
 				if norm[0]>deadZone and norm[1]>deadZone
-					ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+					ctx.fillText(nodeA.name,nodeA.drawPosition.x+norm[0]*trackWidth*5,nodeA.drawPosition.y+norm[1]*trackWidth*5)
 	
 				if norm[0]<deadZone and norm[1]<deadZone
-					ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5-metric.width,nodeA.position.y+norm[1]*trackWidth*5)
+					ctx.fillText(nodeA.name,nodeA.drawPosition.x+norm[0]*trackWidth*5-metric.width,nodeA.drawPosition.y+norm[1]*trackWidth*5)
 	
 				if norm[0]>deadZone and norm[1]<deadZone
-					ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+					ctx.fillText(nodeA.name,nodeA.drawPosition.x+norm[0]*trackWidth*5,nodeA.drawPosition.y+norm[1]*trackWidth*5)
 	
 				if norm[0]<deadZone and norm[1]>deadZone
-					ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+					ctx.fillText(nodeA.name,nodeA.drawPosition.x+norm[0]*trackWidth*5,nodeA.drawPosition.y+norm[1]*trackWidth*5)
 					
 					nodeA.nameRendered = true
 			
@@ -161,8 +162,8 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 			
 			for i in [0..localTracks.length-1]
 				offset = i*trackWidth
-				start = {x:nodeA.position.x + norm[0]*offset,y:nodeA.position.y + norm[1]*offset}
-				stop = {x:nodeB.position.x + norm[0]*offset,y:nodeB.position.y + norm[1]*offset}
+				start = {x:nodeA.drawPosition.x + norm[0]*offset,y:nodeA.drawPosition.y + norm[1]*offset}
+				stop = {x:nodeB.drawPosition.x + norm[0]*offset,y:nodeB.drawPosition.y + norm[1]*offset}
 				@drawTrackLine(@tracks[localTracks[i]].colour,start,stop)
 			
 			
@@ -203,7 +204,7 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 			if node.type == 'interchange' or !node.type?
 				ctx.save()
 	
-				ctx.translate(node.position.x,node.position.y)
+				ctx.translate(node.drawPosition.x,node.drawPosition.y)
 
 				ctx.fillStyle = nodeEdgeColour
 				

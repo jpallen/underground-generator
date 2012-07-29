@@ -9,8 +9,14 @@ define [
 				element: $("#google-map")
 
 		generateMap: () ->
+			canvas = $("canvas")[0]
+			canvas.width = $("#rendered-map").width()
+			canvas.height = $("#rendered-map").height()
+			console.log $("#rendered-map").width()
+			console.log canvas.width, canvas.height
+
 			clearInterval @renderIntervalId
-			mapData = @mapInterface.export(0, 0, 800, 600)
+			mapData = @mapInterface.export(0, 0, canvas.width, canvas.height)
 			@mapGenerator = new MapGenerator(mapData)
 			@mapGenerator.makeNice () =>
 				clearInterval @render
@@ -27,4 +33,4 @@ define [
 
 	$ () ->
 		window.app = new App()
-		$("#view-map-tab").on "click", () -> app.generateMap()
+		$("#view-map-tab").on "shown", () -> app.generateMap()

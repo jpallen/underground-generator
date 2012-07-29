@@ -24,7 +24,6 @@ define ["cs!node"], (Node) ->
 			@resetMagicNumbers()
 
 		resetMagicNumbers: ()->
-			console.log "reseting numners"
 			k = 10
 			dt = basedt = 0.01
 			m = 1
@@ -56,8 +55,6 @@ define ["cs!node"], (Node) ->
 
 			FC=FC+1
 			
-			console.log FC,gridForce,k,G
-
 			if FC>1000 and @scheme == "spread"
 				k = 10
 				G = 1000000
