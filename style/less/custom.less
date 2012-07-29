@@ -11,7 +11,7 @@ body {
 
 #pick-points {
 	position: absolute;
-	top: 36px;
+	top: 0;
 	left: 0;
 	right: 0;
 	bottom: 0;
@@ -54,7 +54,12 @@ body {
 	bottom: @padding;
 }
 
-.tab-pane {
+.tab-content {
+	position: absolute;
+	top: 36px;
+	bottom: 0;
+	left:0;
+	right: 0;
 	border: 1px solid #DDD;
 	border-top: none;
 	background-color: white;
@@ -74,4 +79,13 @@ body {
 	.map {
 		color: #000;
 	}
+}
+
+#rendered-map {
+	overflow: scroll;
+}
+
+canvas {
+	width: 100%;
+	height: 100%;
 }
