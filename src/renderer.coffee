@@ -27,9 +27,7 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 		
 			for aNode in @nodes
 				aNode.trackList = []
-		
-			console.log("expanding...")
-			
+					
 			i=-1
 			
 			for aTrack in @tracks
@@ -51,8 +49,7 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 				
 				aNode.trackList = newArray
 				
-				console.log newArray
-
+	
 		draw: () ->
 			ctx.clearRect(0,0,canvas.width, canvas.height)
 			for aTrack in @tracks
@@ -76,6 +73,8 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 			
 			ctx.strokeStyle = colour
 			ctx.lineWidth = trackWidth
+			ctx.lineCap = "round"
+			ctx.lineJoin = "round"
 			
 			ctx.beginPath()
 			ctx.moveTo(start.x,start.y)
@@ -88,11 +87,53 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 		drawAllTracksBetweenNodes: (nodeA,nodeB) ->
 			localTracks = @trackUnion(nodeA,nodeB) 
 			norm = @nodesUnitNormal(nodeA,nodeB)
+			
+			if nodeA.type != "interchange"
+				ctx.save()
+				
+				ctx.strokeStyle = @tracks[localTracks[0]].colour
+				ctx.lineWidth = trackWidth
+	
+				ctx.lineCap = "round"
+				ctx.lineJoin = "round"
+	
+				ctx.beginPath()
+				ctx.moveTo(nodeA.position.x,nodeA.position.y)
+				ctx.lineTo(nodeA.position.x+norm[0]*trackWidth*2,nodeA.position.y+norm[1]*trackWidth*2)
+				ctx.closePath()
+				
+				ctx.stroke()
+	
+				ctx.restore()
+				
+			ctx.save()			
+			
+			metric=ctx.measureText(nodeA.name)
+			
+			deadZone=0
+			
+			if norm[0]>deadZone and norm[1]>deadZone
+				ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+
+			if norm[0]<deadZone and norm[1]<deadZone
+				ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5-metric.width,nodeA.position.y+norm[1]*trackWidth*5)
+
+			if norm[0]>deadZone and norm[1]<deadZone
+				ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+
+			if norm[0]<deadZone and norm[1]>deadZone
+				ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+			
+			ctx.restore()
+			
 			for i in [0..localTracks.length-1]
 				offset = i*trackWidth
 				start = {x:nodeA.position.x + norm[0]*offset,y:nodeA.position.y + norm[1]*offset}
 				stop = {x:nodeB.position.x + norm[0]*offset,y:nodeB.position.y + norm[1]*offset}
 				@drawTrackLine(@tracks[localTracks[i]].colour,start,stop)
+			
+			
+			
 				
 		nodesDist: (nodeA,nodeB) ->
 			Math.sqrt(
@@ -121,11 +162,16 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 								union.push(track)
 			return union
 
-		drawNode: (node) ->
-			ctx.save()
-			ctx.translate(node.position.x,node.position.y)
+		clear: () ->
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-			if node.type == 'interchange' 
+
+		drawNode: (node) ->
+			if node.type == 'interchange' or !node.type?
+				ctx.save()
+	
+				ctx.translate(node.position.x,node.position.y)
+
 				ctx.fillStyle = nodeEdgeColour
 				
 				ctx.beginPath()
@@ -139,11 +185,5 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 				ctx.arc(0,0,nodeRadius2,0,6.29,0)
 				ctx.closePath()			
 				ctx.fill()
-			#else if node.type=='stop' or !node.type?
 				
-				
-				
-			ctx.restore()
-			
-		clear: () ->
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.restore()

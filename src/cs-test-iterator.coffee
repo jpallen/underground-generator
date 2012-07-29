@@ -1,9 +1,13 @@
-define ["cs!data", "cs!force-iterator", "cs!renderer"], (data, ForceIterator, Renderer) ->
+define ["cs!data", "cs!map-generator", "cs!renderer"], (data, MapGenerator, Renderer) ->
 	$ () ->
-		iterator = new ForceIterator(data.nodes, data.tracks)
-		renderer = new Renderer data.nodes, data.tracks,
-			element: $("#rendered-map")
-		setInterval((() ->
-			iterator.step()
+		mapGenerator = new MapGenerator(data)
+		displayData = mapGenerator.displayData
+
+		render = () ->
+			renderer = new Renderer displayData.nodes, displayData.tracks,
+				element: $("#rendered-map")
 			renderer.draw()
-		), 10)
+		setInterval render, 10
+
+		mapGenerator.makeNice () ->
+			clearInterval render
