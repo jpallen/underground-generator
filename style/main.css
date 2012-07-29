@@ -4209,7 +4209,7 @@ a.badge:hover {
   margin: 10px;
 }
 .side-panel .track {
-  padding: 3px;
+  padding: 10px 6px 6px 10px;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;

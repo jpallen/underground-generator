@@ -10,8 +10,19 @@ define ["../lib/mustache"], (Mustache) ->
 		currentColor = (currentColor + 1) % colors.length
 		return colors[currentColor]
 
+	names = [
+		"Picadilly", "Central", "Circle",
+		"District", "Metropolitan", "Hammersmith & City",
+		"Northern", "Victoria", "Bakerloo"
+	]
+	currentName = -1
+	getNextName = () ->
+		currentName = (currentName + 1) % names.length
+		return names[currentName]
+
 	class Track
 		constructor: (@map, @name) ->
+			_.extend this, Backbone.Events
 			@nodes = []
 			@color = getNextColor()
 			@renderInSidebar()
@@ -38,6 +49,8 @@ define ["../lib/mustache"], (Mustache) ->
 				color: @color
 			}))
 			@$el.insertBefore $("#add-track")
+			@on "change:name", =>
+				@$el.find(".name").text(@name)
 
 		renderNodeInSidebar: (node) ->
 			template =
@@ -56,15 +69,12 @@ define ["../lib/mustache"], (Mustache) ->
 				color: "white"
 				"background-color": @color
 			})
-			console.log "selecting", @name, @$el
 
 		unselect: () ->
 			@$el.css({
 				color: @color
 				"background-color": "white"
 			})
-			console.log "unselecting", @name, @$el
-			
 
 	class Node
 		constructor: (@map, position) ->
@@ -100,7 +110,6 @@ define ["../lib/mustache"], (Mustache) ->
 
 	class Line
 		constructor: (@map, @from, @to) ->
-			console.log @from.track.color
 			@line = new google.maps.Polyline
 				map: @map
 				path: [@from.marker.position, @to.marker.position]
@@ -121,6 +130,8 @@ define ["../lib/mustache"], (Mustache) ->
 			@nodes = []
 			@addTrack()
 			$("#add-track").click () => @addTrack()
+			$("#rename-track-modal a").on "click", () =>
+				@finishRename()
 
 		initMap: () ->
 			@map = new google.maps.Map @element[0],
@@ -143,9 +154,11 @@ define ["../lib/mustache"], (Mustache) ->
 				@currentTrack.addNode node
 
 		addTrack: () ->
-			track = new Track @map, "Untitled"
+			track = new Track @map, getNextName()
 			@tracks.push track
 			@changeTrack(track)
+			track.$el.on "dblclick", () =>
+				@renameTrack(track)
 			track.$el.on "click", () =>
 				@changeTrack(track)
 
@@ -154,6 +167,16 @@ define ["../lib/mustache"], (Mustache) ->
 			for oldTrack in @tracks
 				oldTrack.unselect()
 		 	track.select()
+
+		renameTrack: (track) ->
+			$("#track-name").val(track.name)
+			$("#rename-track-modal").modal()
+
+		finishRename: (track) ->
+			console.log "done"
+			@currentTrack.name = $("#track-name").val()
+			@currentTrack.trigger("change:name")
+			$("#rename-track-modal").modal("hide")
 
 		export: (x, y, width, height) ->
 			json =
