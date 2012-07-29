@@ -51,13 +51,42 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 				
 	
 		draw: () ->
+			
 			ctx.clearRect(0,0,canvas.width, canvas.height)
+			
+			maxx = canvas.width/2
+			maxy = canvas.height/2
+			minx = canvas.width/2
+			miny = canvas.height/2
+			
+			for aNode in @nodes
+				do (aNode) =>
+					aNode.nameRendered = false
+					if aNode.position.x>maxx
+						maxx = aNode.position.x
+					if aNode.position.x<minx
+						minx = aNode.position.x
+					if aNode.position.y>maxy
+						maxy = aNode.position.y
+					if aNode.position.y<miny
+						miny = aNode.position.y
+					
+			avx = (minx+maxx)/2
+			avy = (miny+maxy)/2
+			
+			ctx.save()
+			ctx.translate(avx/2,avy/2)
+			
+			#ctx.scale(0.7,0.7)
+			
 			for aTrack in @tracks
 				do (aTrack) =>
 					@drawTrack(aTrack)
 			for aNode in @nodes
 				do (aNode) =>
 					@drawNode(aNode)
+					
+			ctx.restore()
 
 		drawTrack: (track) ->
 			prevNode = @nodes[track.nodeList[0]]
@@ -108,21 +137,25 @@ define ["cs!node", "cs!track"], (Node, Track) ->
 				
 			ctx.save()			
 			
-			metric=ctx.measureText(nodeA.name)
+			if nodeA.nameRendered == false
 			
-			deadZone=0
-			
-			if norm[0]>deadZone and norm[1]>deadZone
-				ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
-
-			if norm[0]<deadZone and norm[1]<deadZone
-				ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5-metric.width,nodeA.position.y+norm[1]*trackWidth*5)
-
-			if norm[0]>deadZone and norm[1]<deadZone
-				ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
-
-			if norm[0]<deadZone and norm[1]>deadZone
-				ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+				metric=ctx.measureText(nodeA.name)
+				
+				deadZone=0
+				
+				if norm[0]>deadZone and norm[1]>deadZone
+					ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+	
+				if norm[0]<deadZone and norm[1]<deadZone
+					ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5-metric.width,nodeA.position.y+norm[1]*trackWidth*5)
+	
+				if norm[0]>deadZone and norm[1]<deadZone
+					ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+	
+				if norm[0]<deadZone and norm[1]>deadZone
+					ctx.fillText(nodeA.name,nodeA.position.x+norm[0]*trackWidth*5,nodeA.position.y+norm[1]*trackWidth*5)
+					
+					nodeA.nameRendered = true
 			
 			ctx.restore()
 			
