@@ -4203,6 +4203,17 @@ a.badge:hover {
   height: 100%;
   border-right: 1px solid #999;
   float: left;
+  overflow: scroll;
+}
+.side-panel .side-panel-inner {
+  margin: 10px;
+}
+.side-panel .track {
+  padding: 3px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  margin-bottom: 5px;
 }
 .map-panel {
   margin-left: 300px;
