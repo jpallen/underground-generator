@@ -1,22 +1,12 @@
 define ["cs!track", "cs!node", "cs!force-iterator"], (Track, Node, ForceIterator) ->
 	class MapGenerator
 		constructor: (data) ->
-			colors = [
-				"red",
-				"blue",
-				"green",
-				"orange",
-				"brown",
-				"black"
-			]
 			colorIndex = 0
 			@displayData = {
 				nodes: for node in data.nodes
 					new Node(node.name,node.position.x,node.position.y)
 				tracks: for track in data.tracks
-					colorIndex++
-					colorIndex = 0 if colorIndex > colors.length
-					new Track(track.name,track.line, colors[colorIndex])
+					new Track(track.name,track.line, track.color)
 			}
 			@assignIntersections()
 
@@ -54,12 +44,12 @@ define ["cs!track", "cs!node", "cs!force-iterator"], (Track, Node, ForceIterator
 				track.nodeList.reverse()
 
 		makeNice: (callback) ->
-			iterator = new ForceIterator(@displayData.nodes, @displayData.tracks)
-			runner = () =>
-				delta = iterator.step()
-				if delta < 1
-					clearInterval runner
-					callback(@displayData)
-
-			setInterval runner, 0
+			clearInterval @stepId
+			@iterator = new ForceIterator(@displayData.nodes, @displayData.tracks)
+			step = () =>
+				delta = @iterator.step()
+				if delta < 0.1
+					clearInterval @stepId
+					console.log "cleared"
+			@stepId = setInterval step, 10
 

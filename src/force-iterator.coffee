@@ -1,16 +1,12 @@
-define ["cs!node"],(Node) ->
+define ["cs!node"], (Node) ->
 
 	# spring system constants
 	k = 10
 	dt = basedt = 0.1
 	m = 1
 	c = 1
-	
 	k2 = 0.3
-
 	gridForce = 100
-	
-	# field system constants
 	G = 100000
 
 	class ForceIterator
@@ -22,8 +18,18 @@ define ["cs!node"],(Node) ->
 			sum = 0
 			sum += length for length in lengths
 			@targetLength = sum / lengths.length
-
 			@scheme = "spread"
+			@resetMagicNumbers()
+
+		resetMagicNumbers: ()->
+			console.log "reseting numners"
+			k = 10
+			dt = basedt = 0.1
+			m = 1
+			c = 1
+			k2 = 0.3
+			gridForce = 100
+			G = 100000
 
 		step: () ->
 			# intialize node force data

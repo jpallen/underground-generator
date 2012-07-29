@@ -188,13 +188,14 @@ define ["../lib/mustache"], (Mustache) ->
 				json.nodes.push
 					name: node.name
 					position:
-						x: -node.marker.position.lat()
-						y: node.marker.position.lng()
+						x: node.marker.position.lng()
+						y: -node.marker.position.lat()
 			
 			for track in @tracks
 				json.tracks.push
 					name : track.name
 					line : (node.index for node in track.nodes)
+					color: track.color
 
 			for node in json.nodes
 				if !minX? or node.position.x < minX
@@ -213,5 +214,4 @@ define ["../lib/mustache"], (Mustache) ->
 				node.position.x = (node.position.x - minX) * xScaleFactor + x
 				node.position.y = (node.position.y - minY) * yScaleFactor + y
 
-			return JSON.stringify(json)
-			
+			return json

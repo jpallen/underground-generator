@@ -4198,6 +4198,16 @@ a.badge:hover {
 .invisible {
   visibility: hidden;
 }
+.nav {
+  margin-bottom: 0;
+}
+#pick-points {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
 .side-panel {
   width: 300px;
   height: 100%;
