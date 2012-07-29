@@ -27,13 +27,13 @@ define ["cs!node"], (Node) ->
 
 		resetMagicNumbers: ()->
 			console.log "reseting numners"
-			k = 5
-			dt = basedt = 0.01
+			k = 1
+			dt = basedt = 0.1
 			m = 1
 			c = 1
 			k2 = 0.3
 			gridForce = 100
-			G = 10000
+			G = 100000
 
 		step: () ->
 			# intialize node force data
@@ -51,11 +51,13 @@ define ["cs!node"], (Node) ->
 				@assignGridForces()
 				@assignSpringForces()
 				@assignCloseToHomeForces()
+				@assignNodeRepulsionForces()
 			delta = @applyForces()
 
 			if delta < 1 and @scheme == "spread"
-				k = k / 500.0
-				k2 = k2 / 100.0
+				k = k / 100
+				G = G / 1000
+				k2 = 0
 				@scheme = "grid"
 			if delta < 100
 				dt = 5 * basedt
