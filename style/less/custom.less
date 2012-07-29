@@ -1,5 +1,10 @@
 @sidePanelWidth: 300px;
 
+body {
+	background-image: url(/style/subtlenet2.png);
+	border-top: 4px solid #263d96;
+}
+
 .nav {
 	margin-bottom: 0;
 }
@@ -15,7 +20,7 @@
 .side-panel {
 	width: @sidePanelWidth;
 	height: 100%;
-	border-right: 1px solid #999;
+	border-right: 1px solid #DDD;
 	float: left;
 	overflow: scroll;
 	.side-panel-inner {
@@ -38,3 +43,35 @@
 }
 #google-map label { width: auto; display:inline; }
 #google-map img { max-height: none; max-width: none; }
+
+@padding: 30px;
+
+.main {
+	position: absolute;
+	top: @padding;
+	left: @padding;
+	right: @padding;
+	bottom: @padding;
+}
+
+.tab-pane {
+	border: 1px solid #DDD;
+	border-top: none;
+	background-color: white;
+}
+
+.logo {
+	float: right;
+	font-size: 22px;
+	padding-top: 5px;
+	padding-right: 2px;
+	.my {
+		color: #263d96;
+	}
+	.metro {
+		color: #960154;
+	}
+	.map {
+		color: #000;
+	}
+}

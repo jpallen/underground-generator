@@ -4198,6 +4198,10 @@ a.badge:hover {
 .invisible {
   visibility: hidden;
 }
+body {
+  background-image: url(/style/subtlenet2.png);
+  border-top: 4px solid #263d96;
+}
 .nav {
   margin-bottom: 0;
 }
@@ -4211,7 +4215,7 @@ a.badge:hover {
 .side-panel {
   width: 300px;
   height: 100%;
-  border-right: 1px solid #999;
+  border-right: 1px solid #DDD;
   float: left;
   overflow: scroll;
 }
@@ -4239,4 +4243,31 @@ a.badge:hover {
 #google-map img {
   max-height: none;
   max-width: none;
+}
+.main {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+}
+.tab-pane {
+  border: 1px solid #DDD;
+  border-top: none;
+  background-color: white;
+}
+.logo {
+  float: right;
+  font-size: 22px;
+  padding-top: 5px;
+  padding-right: 2px;
+}
+.logo .my {
+  color: #263d96;
+}
+.logo .metro {
+  color: #960154;
+}
+.logo .map {
+  color: #000;
 }
